@@ -46,6 +46,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 html { scroll-behavior: smooth; }
+/* defensive — never allow horizontal scroll, no matter what bleeds past
+   the viewport (orb cast, shadows, animated transforms, etc.) */
+html, body { overflow-x: clip; }
 
 body {
   font-family: var(--ff-body);
@@ -289,9 +292,11 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   transition: color 240ms ease;
   position: relative;
 }
-/* whichever link the pill currently sits behind ends up white (set by JS) */
-.site-nav__links a.is-pill-active,
-.site-nav__links a:focus-visible {
+/* whichever link the pill currently sits behind ends up white (set by JS) —
+   only meaningful when the pill is actually visible (desktop), so we scope it
+   away from the open mobile dropdown where the pill is hidden */
+.site-nav:not(.open) .site-nav__links a.is-pill-active,
+.site-nav:not(.open) .site-nav__links a:focus-visible {
   color: var(--paper);
 }
 
@@ -332,12 +337,20 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     position: absolute;
     top: calc(100% + 10px);
     left: 0; right: 0;
-    background: rgba(244, 244, 246, 0.96);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    /* solid paper — semi-transparency was making the dark menu items hard
+       to read against scrolling page content underneath */
+    background: var(--paper);
     border: 1px solid var(--rule-2);
     border-radius: 22px;
     padding: 10px;
+    box-shadow: 0 24px 48px -22px rgba(14,18,28,0.22);
+  }
+  .site-nav.open .site-nav__links a {
+    color: var(--ink);
+  }
+  .site-nav.open .site-nav__links a:hover {
+    background: var(--paper-2);
+    color: var(--ink);
   }
   .site-nav.open .site-nav__pill { display: none; }
   .site-nav.open .site-nav__links {
@@ -983,15 +996,17 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   z-index: 1;
 }
 
-/* cast light — colored glow projected from the sphere onto its surroundings */
+/* cast light — colored glow projected from the sphere onto its surroundings.
+   size driven by --cast-size so it shrinks alongside --orb-size on mobile and
+   never bleeds past the viewport */
 .guarantee__cast {
   position: absolute;
   left: 70%;
   top: 50%;
-  width: 760px;
-  height: 760px;
-  margin-left: -380px;
-  margin-top:  -380px;
+  width: var(--cast-size, 760px);
+  height: var(--cast-size, 760px);
+  margin-left: calc(var(--cast-size, 760px) / -2);
+  margin-top:  calc(var(--cast-size, 760px) / -2);
   border-radius: 50%;
   background:
     radial-gradient(circle at calc(50% + var(--sx) * 1.05) calc(50% + var(--sy) * 1.05),
@@ -1111,6 +1126,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     --orb-size: 160px;
     --ring-size: 280px;
     --travel: 90px;
+    --cast-size: 380px;
+    overflow: hidden;
+    border-radius: 28px;
   }
   /* center the orb horizontally on mobile (left:70% offsets are wrong) */
   .guarantee__sun,
@@ -1120,7 +1138,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   .guarantee__copy { padding: clamp(2rem, 6vw, 3rem); }
 }
 @media (max-width: 480px) {
-  .guarantee__visual { min-height: 240px; --orb-size: 130px; --ring-size: 220px; --travel: 60px; }
+  .guarantee__visual { min-height: 240px; --orb-size: 130px; --ring-size: 220px; --travel: 60px; --cast-size: 300px; }
 }
 
 /* ============================================================
