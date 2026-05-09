@@ -5,6 +5,11 @@
           <altavia-footer></altavia-footer>
    ============================================================ */
 
+/* import the logo asset so Vite resolves it to the hashed filename in
+   production. plain '/assets/img/...' string literals are NOT rewritten
+   by Vite, so the dev path 404s on the built site. */
+import ASSET_ISOTIPO from '../img/logo-isotipo.png';
+
 const NAV_LINKS = [
   { id: 'home',       label: 'Inicio',     href: '/index.html'        },
   { id: 'soluciones', label: 'Soluciones', href: '/soluciones.html'   },
@@ -12,8 +17,6 @@ const NAV_LINKS = [
   { id: 'nosotros',   label: 'Nosotros',   href: '/nosotros.html'     },
   { id: 'referidos',  label: 'Referidos',  href: '/referidos.html'    },
 ];
-
-const ASSET_ISOTIPO = '/assets/img/logo-isotipo.png';
 
 /* ------------------------------------------------------------
    <altavia-nav current="home">
