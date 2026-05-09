@@ -203,7 +203,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   gap: 24px;
   padding: 8px 8px 8px 22px;
 
-  background: rgba(246, 243, 236, 0.55);
+  background: rgba(244, 244, 246, 0.7);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.55);
@@ -332,7 +332,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     position: absolute;
     top: calc(100% + 10px);
     left: 0; right: 0;
-    background: rgba(246, 243, 236, 0.94);
+    background: rgba(244, 244, 246, 0.96);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--rule-2);
