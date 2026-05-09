@@ -218,24 +218,20 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.005em;
   color: var(--ink);
+  flex-shrink: 0;
 }
-.site-nav__brand img { width: 26px; height: 26px; }
-.site-nav__brand span small {
-  font-family: var(--ff-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+/* wordmark rendered as a mask so it inherits the ink color and stays sharp at any size */
+.site-nav__wordmark {
   display: block;
-  line-height: 1;
-  margin-top: 2px;
+  width: clamp(118px, 12vw, 148px);
+  aspect-ratio: 1536 / 477;
+  background: currentColor;
+  -webkit-mask: url('/assets/img/altavia-wordmark.webp') center / contain no-repeat;
+          mask: url('/assets/img/altavia-wordmark.webp') center / contain no-repeat;
+  transition: opacity 220ms ease;
 }
+.site-nav__brand:hover .site-nav__wordmark { opacity: 0.78; }
 
 /* pillbox: sliding indicator that morphs across links */
 .site-nav__pillbox {
@@ -1517,12 +1513,23 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   color: var(--paper);
 }
 .site-footer__brand .logo {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--ff-display); font-weight: 700; font-size: 1.05rem;
+  display: inline-flex; align-items: center; gap: 14px;
+  font-family: var(--ff-display); font-weight: 800; font-size: 1.45rem;
+  letter-spacing: -0.01em;
   letter-spacing: -0.005em;
   color: var(--paper);
 }
-.site-footer__brand .logo img { width: 32px; height: 32px; }
+.site-footer__brand .logo img { width: 44px; height: 44px; }
+.site-footer__brand .logo span { display: inline-flex; flex-direction: column; line-height: 0.95; }
+.site-footer__brand .logo span small {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(246,243,236,0.55);
+  margin-top: 4px;
+}
 .site-footer__contact { font-size: 0.92rem; line-height: 1.6; color: rgba(246,243,236,0.7); }
 .site-footer__contact .row { display: flex; gap: 10px; align-items: flex-start; padding-block: 4px; }
 .site-footer__contact a:hover { color: var(--sun-soft); }

@@ -6,14 +6,15 @@
    ============================================================ */
 
 const NAV_LINKS = [
-  { id: 'home',       label: 'Inicio',                href: '/index.html#top' },
-  { id: 'soluciones', label: 'Soluciones',            href: '/index.html#soluciones' },
-  { id: 'proceso',    label: 'Proceso',               href: '/index.html#proceso' },
-  { id: 'nosotros',   label: 'Nosotros',              href: '/index.html#nosotros' },
+  { id: 'home',       label: 'Inicio',     href: '/index.html'        },
+  { id: 'soluciones', label: 'Soluciones', href: '/soluciones.html'   },
+  { id: 'proceso',    label: 'Proceso',    href: '/index.html#proceso' },
+  { id: 'nosotros',   label: 'Nosotros',   href: '/nosotros.html'     },
+  { id: 'referidos',  label: 'Referidos',  href: '/referidos.html'    },
 ];
 
-const ASSET_LOGO   = '/assets/img/logo-isotipo.png';
-const ASSET_POWERD = '/assets/img/powered-by-clockwork.png';
+const ASSET_ISOTIPO  = '/assets/img/logo-isotipo.png';
+const ASSET_WORDMARK = '/assets/img/altavia-wordmark.webp';
 
 /* ------------------------------------------------------------
    <altavia-nav current="home">
@@ -29,8 +30,7 @@ class AltaviaNav extends HTMLElement {
     this.innerHTML = `
       <nav class="site-nav" aria-label="Principal">
         <a class="site-nav__brand" href="/index.html" aria-label="ALTAVIA energies — inicio">
-          <img src="${ASSET_LOGO}" alt="" width="28" height="28" />
-          <span>ALTAVIA<small>energies</small></span>
+          <span class="site-nav__wordmark" role="img" aria-label="ALTAVIA energies"></span>
         </a>
         <div class="site-nav__pillbox">
           <span class="site-nav__pill" aria-hidden="true"></span>
@@ -109,8 +109,8 @@ class AltaviaFooter extends HTMLElement {
           <div class="site-footer__top">
             <div class="site-footer__brand">
               <a class="logo" href="/index.html">
-                <img src="${ASSET_LOGO}" alt="" width="32" height="32" />
-                <span>ALTAVIA energies</span>
+                <img src="${ASSET_ISOTIPO}" alt="" width="44" height="44" />
+                <span>ALTAVIA<small>energies</small></span>
               </a>
               <h3>El motor que impulsa la transición energética inteligente.</h3>
               <div class="site-footer__contact">
@@ -123,18 +123,19 @@ class AltaviaFooter extends HTMLElement {
             <div>
               <h5>Navegación</h5>
               <ul>
-                <li><a href="#top">Inicio</a></li>
-                <li><a href="#soluciones">Soluciones</a></li>
-                <li><a href="#proceso">Proceso</a></li>
-                <li><a href="#nosotros">Nosotros</a></li>
+                <li><a href="/index.html">Inicio</a></li>
+                <li><a href="/soluciones.html">Soluciones</a></li>
+                <li><a href="/index.html#proceso">Proceso</a></li>
+                <li><a href="/nosotros.html">Nosotros</a></li>
+                <li><a href="/referidos.html">Referidos</a></li>
               </ul>
             </div>
 
             <div>
               <h5>Legal</h5>
               <ul>
-                <li><a href="#privacidad">Política de privacidad</a></li>
-                <li><a href="#terminos">Términos y condiciones</a></li>
+                <li><a href="/privacidad.html">Política de privacidad</a></li>
+                <li><a href="/terminos.html">Términos y condiciones</a></li>
               </ul>
             </div>
 
@@ -142,7 +143,7 @@ class AltaviaFooter extends HTMLElement {
               <h5>Contacto</h5>
               <ul>
                 <li><a href="mailto:contacto@altaviaenergies.com">Escríbenos</a></li>
-                <li><a href="#contacto">Diagnóstico sin costo</a></li>
+                <li><a href="/index.html#contacto">Diagnóstico sin costo</a></li>
               </ul>
             </div>
           </div>
