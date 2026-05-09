@@ -100,9 +100,6 @@ class AltaviaFooter extends HTMLElement {
 
           <div class="site-footer__bottom">
             <div>© ${new Date().getFullYear()} ALTAVIA energies — todos los derechos reservados</div>
-            <div class="site-footer__powered">
-              <img src="${ASSET_POWERD}" alt="Powered by Clockwork" />
-            </div>
             <div class="site-footer__socials" aria-label="Redes sociales">
               <a href="#" aria-label="Facebook">
                 <svg viewBox="0 0 24 24"><path d="M14 7h3V4h-3a4 4 0 0 0-4 4v2H7v3h3v8h3v-8h3l1-3h-4V8a1 1 0 0 1 1-1z"/></svg>
@@ -132,7 +129,7 @@ function initOrb() {
   const orb = document.querySelector('[data-orb]');
   if (!orb) return;
 
-  const TRAVEL = 70;          // max travel radius from center, px
+  const TRAVEL = 180;         // max travel radius — orb roams outside its card
   const EASE   = 0.18;        // smoothing factor per frame
   let targetX = 0, targetY = 0;
   let currX = 0,   currY = 0;
@@ -181,8 +178,107 @@ function initOrb() {
   orb.addEventListener('touchend', () => { targetX = 0; targetY = 0; schedule(); });
 }
 
+/* ------------------------------------------------------------
+   IntersectionObserver — toggles .in-view on each major section
+   so reveal animations fire as the user scrolls.
+   ------------------------------------------------------------ */
+function initSectionReveals() {
+  const sections = document.querySelectorAll('main > section');
+  if (!sections.length || !('IntersectionObserver' in window)) {
+    sections.forEach(s => s.classList.add('in-view'));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+      }
+    });
+  }, { rootMargin: '0px 0px -15% 0px', threshold: 0.12 });
+  sections.forEach(s => io.observe(s));
+}
+
+/* ------------------------------------------------------------
+   text splitter — wraps each word in a span with a --i index
+   so CSS can stagger word-by-word reveals on section enter.
+   ------------------------------------------------------------ */
+function splitWords(el) {
+  if (!el || el.dataset.split === '1') return;
+  const ctx = { wordIdx: 0, lastWord: null };
+  const PUNCT = /^[.,;:!?…)\]"”»]+$/;
+
+  const newWordSpan = (text) => {
+    const span = document.createElement('span');
+    span.className = 'word';
+    span.style.setProperty('--i', ctx.wordIdx++);
+    if (typeof text === 'string') span.textContent = text;
+    return span;
+  };
+
+  const walk = (node, parent) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent;
+      const parts = text.split(/(\s+)/);
+      for (const p of parts) {
+        if (p === '') continue;
+        if (/^\s+$/.test(p)) {
+          parent.appendChild(document.createTextNode(p));
+          continue;
+        }
+        // pure punctuation -> attach to previous word so it can't wrap alone
+        if (PUNCT.test(p) && ctx.lastWord) {
+          ctx.lastWord.appendChild(document.createTextNode(p));
+          continue;
+        }
+        const span = newWordSpan(p);
+        parent.appendChild(span);
+        ctx.lastWord = span;
+      }
+      return;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.tagName === 'BR') {
+        parent.appendChild(node.cloneNode(true));
+        ctx.lastWord = null;
+        return;
+      }
+      if (node.tagName === 'EM') {
+        // iridescent emphasis becomes a single word unit — preserves gradient
+        const span = newWordSpan();
+        span.appendChild(node.cloneNode(true));
+        parent.appendChild(span);
+        ctx.lastWord = span;
+        return;
+      }
+      // descend through generic wrappers
+      const clone = node.cloneNode(false);
+      parent.appendChild(clone);
+      for (const c of Array.from(node.childNodes)) walk(c, clone);
+      return;
+    }
+    parent.appendChild(node.cloneNode(true));
+  };
+
+  const out = document.createDocumentFragment();
+  for (const c of Array.from(el.childNodes)) walk(c, out);
+  el.innerHTML = '';
+  el.appendChild(out);
+  el.dataset.split = '1';
+}
+
+function initWordReveals() {
+  const targets = document.querySelectorAll('.h-display, .h-section, .newsletter h3');
+  targets.forEach(splitWords);
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initOrb);
+  document.addEventListener('DOMContentLoaded', () => {
+    initWordReveals();      // split FIRST so observer sees the spans
+    initOrb();
+    initSectionReveals();
+  });
 } else {
+  initWordReveals();
   initOrb();
+  initSectionReveals();
 }

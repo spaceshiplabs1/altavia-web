@@ -760,7 +760,8 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   background: var(--ink);
   color: var(--paper);
   border-radius: 36px;
-  overflow: hidden;
+  /* allow the orb to escape the card edges */
+  overflow: visible;
   position: relative;
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -799,18 +800,24 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   line-height: 1.55;
   margin: 0;
 }
-/* interactive orb — sphere follows cursor inside the ring,
-   casts brand-colored light + hard angled shadow projecting downward */
+/* interactive orb — sphere follows cursor, allowed to roam outside its ring + card */
 .guarantee__visual {
   position: relative;
-  overflow: hidden;
-  /* sphere offset (set via JS on mousemove, clamped to ring) */
+  /* let orb + cast light overflow the card so it can roam */
+  overflow: visible;
+  /* sphere offset (set via JS on mousemove, clamped to extended travel radius) */
   --sx: 0px;
   --sy: 0px;
   --orb-size: 220px;
   --ring-size: 380px;
-  --travel: 70px;
+  --travel: 180px;
   perspective: 1000px;
+}
+/* keep the brand atmosphere wash and scanlines clipped to the visual cell only */
+.guarantee__visual::before,
+.guarantee__visual::after {
+  border-radius: 0 36px 36px 0;
+  overflow: hidden;
 }
 .guarantee__visual::before {
   /* deep brand atmosphere */
@@ -1272,10 +1279,30 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   border-top: 1px solid var(--rule-2);
   align-items: start;
   position: relative;
-  transition: padding 320ms ease;
 }
 .steps .step:last-child { border-bottom: 1px solid var(--rule-2); }
-.step:hover { padding-inline-start: 8px; }
+/* smooth slide on hover via transform — no reflow flicker */
+.step .step__body,
+.step .step__num,
+.step .step__tag {
+  transition: transform 480ms cubic-bezier(.2,.7,.2,1),
+              color 320ms ease;
+}
+.step:hover .step__num   { transform: translateX(10px); color: var(--brand-m); }
+.step:hover .step__body  { transform: translateX(6px); }
+.step:hover .step__tag   { transform: translateX(-4px); color: var(--ink); }
+.step::before {
+  /* subtle highlight bar on left, slides in on hover */
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  width: 3px; height: 0;
+  background: var(--brand-m);
+  border-radius: 2px;
+  transform: translateY(-50%);
+  transition: height 480ms cubic-bezier(.2,.7,.2,1);
+}
+.step:hover::before { height: 60%; }
 .step__num {
   font-family: var(--ff-display);
   font-weight: 800;
@@ -1483,25 +1510,162 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 /* ============================================================
-   reveal-on-load (subtle)
+   reveal-on-section-enter (IntersectionObserver toggles .in-view)
    ============================================================ */
 
 .reveal {
   opacity: 0;
-  transform: translateY(14px);
-  animation: reveal 900ms cubic-bezier(.2,.7,.2,1) forwards;
+  transform: translateY(18px);
+  transition:
+    opacity 900ms cubic-bezier(.2,.7,.2,1),
+    transform 900ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: 0ms;
 }
-.reveal[data-d="1"] { animation-delay: 80ms; }
-.reveal[data-d="2"] { animation-delay: 160ms; }
-.reveal[data-d="3"] { animation-delay: 240ms; }
-.reveal[data-d="4"] { animation-delay: 320ms; }
-.reveal[data-d="5"] { animation-delay: 400ms; }
 
-@keyframes reveal {
-  to { opacity: 1; transform: none; }
+/* fire when own section reaches viewport */
+.in-view .reveal,
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
 }
+
+/* staggered cascade via data-d (1..6 → 80ms/step) */
+.in-view .reveal[data-d="1"], .reveal.in-view[data-d="1"] { transition-delay: 80ms; }
+.in-view .reveal[data-d="2"], .reveal.in-view[data-d="2"] { transition-delay: 180ms; }
+.in-view .reveal[data-d="3"], .reveal.in-view[data-d="3"] { transition-delay: 280ms; }
+.in-view .reveal[data-d="4"], .reveal.in-view[data-d="4"] { transition-delay: 380ms; }
+.in-view .reveal[data-d="5"], .reveal.in-view[data-d="5"] { transition-delay: 480ms; }
+.in-view .reveal[data-d="6"], .reveal.in-view[data-d="6"] { transition-delay: 580ms; }
+
+/* section title cascade — title grows in from below by default when section enters */
+section.section, section.hero, section.ribbon, section.transparency, section.process, section.newsletter {
+  /* anchor for scroll-driven journey ball */
+}
+
+/* h-section / h-display animate on entrance unless already revealed */
+section .h-section,
+section .h-display,
+section.newsletter h3 {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 1000ms cubic-bezier(.2,.7,.2,1), transform 1000ms cubic-bezier(.2,.7,.2,1);
+}
+section.in-view .h-section,
+section.in-view .h-display,
+section.in-view h3 {
+  opacity: 1;
+  transform: none;
+  transition-delay: 100ms;
+}
+
+/* eyebrow sliding line + word reveal */
+.in-view .eyebrow {
+  animation: eyebrow-line 700ms cubic-bezier(.2,.7,.2,1) 60ms backwards;
+}
+@keyframes eyebrow-line {
+  from { letter-spacing: 0.32em; opacity: 0; }
+  to   { letter-spacing: 0.16em; opacity: 1; }
+}
+
+/* image reveals — slight scale-in + fade (skip hero img: it has its own
+   transform for vertical centering, only fade it) */
+.ally__visual,
+.transparency__photo,
+.process__aside figure,
+.esg__photo {
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity 1100ms cubic-bezier(.2,.7,.2,1), transform 1400ms cubic-bezier(.2,.7,.2,1);
+}
+.in-view .ally__visual,
+.in-view .transparency__photo,
+.in-view .process__aside figure,
+.in-view .esg__photo {
+  opacity: 1;
+  transform: none;
+  transition-delay: 200ms;
+}
+
+/* hero image: opacity-only fade so we don't break translateY(-50%) */
+.hero__bg img {
+  opacity: 0;
+  transition: opacity 1100ms cubic-bezier(.2,.7,.2,1);
+}
+.hero.in-view .hero__bg img {
+  opacity: 1;
+  transition-delay: 200ms;
+}
+
+/* feature / solution / pillar / step cards — staggered rise */
+.solution, .feature, .pillar, .step {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 800ms cubic-bezier(.2,.7,.2,1),
+    transform 800ms cubic-bezier(.2,.7,.2,1),
+    background 320ms ease;
+}
+.in-view .solution, .in-view .feature, .in-view .pillar, .in-view .step {
+  opacity: 1;
+  transform: none;
+}
+.in-view .solution:nth-child(1), .in-view .feature:nth-child(1),
+.in-view .pillar:nth-child(1),   .in-view .step:nth-child(1)   { transition-delay: 100ms; }
+.in-view .solution:nth-child(2), .in-view .feature:nth-child(2),
+.in-view .pillar:nth-child(2),   .in-view .step:nth-child(2)   { transition-delay: 200ms; }
+.in-view .solution:nth-child(3), .in-view .feature:nth-child(3),
+.in-view .pillar:nth-child(3),   .in-view .step:nth-child(3)   { transition-delay: 300ms; }
+.in-view .feature:nth-child(4),  .in-view .step:nth-child(4)   { transition-delay: 400ms; }
+.in-view .step:nth-child(5)                                    { transition-delay: 500ms; }
+
+/* ribbon stat numbers — scale in with overshoot */
+.ribbon .ribbon__num {
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: center bottom;
+  transition: opacity 600ms cubic-bezier(.34,1.56,.64,1), transform 700ms cubic-bezier(.34,1.56,.64,1);
+}
+.ribbon.in-view .ribbon__item:nth-child(1) .ribbon__num { transition-delay: 150ms; opacity: 1; transform: none; }
+.ribbon.in-view .ribbon__item:nth-child(2) .ribbon__num { transition-delay: 300ms; opacity: 1; transform: none; }
+.ribbon.in-view .ribbon__item:nth-child(3) .ribbon__num { transition-delay: 450ms; opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal { animation: none; opacity: 1; transform: none; }
+  .reveal, .h-section, .h-display, .ally__visual, .transparency__photo,
+  .process__aside figure, .esg__photo, .hero__bg img,
+  .solution, .feature, .pillar, .step, .ribbon__num {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
   * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+
+/* ============================================================
+   word-by-word title reveals (split via JS into .word spans)
+   ============================================================ */
+
+/* container of split text — preserve baseline / line-height */
+.split { display: inline; }
+
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.5em);
+  transition:
+    opacity 700ms cubic-bezier(.2,.7,.2,1),
+    transform 800ms cubic-bezier(.2,.7,.2,1);
+  /* per-word stagger — 60ms between words, set via inline style by JS via --i */
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+section.in-view .word {
+  opacity: 1;
+  transform: none;
+}
+
+/* lede paragraphs — fade up after title finishes */
+section.in-view .lede,
+section.in-view p.lede {
+  /* kick off after a few words have revealed */
+  transition-delay: 350ms;
 }
