@@ -32,7 +32,10 @@ class AltaviaNav extends HTMLElement {
           <img src="${ASSET_LOGO}" alt="" width="28" height="28" />
           <span>ALTAVIA<small>energies</small></span>
         </a>
-        <ul class="site-nav__links">${links}</ul>
+        <div class="site-nav__pillbox">
+          <span class="site-nav__pill" aria-hidden="true"></span>
+          <ul class="site-nav__links">${links}</ul>
+        </div>
         <a class="site-nav__cta" href="/index.html#contacto">Diagnóstico sin costo</a>
         <button class="site-nav__burger" aria-label="Abrir menú" aria-expanded="false">
           <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M0 1h16M0 6h16M0 11h10"/></svg>
@@ -46,6 +49,52 @@ class AltaviaNav extends HTMLElement {
       const open = nav.classList.toggle('open');
       burger.setAttribute('aria-expanded', String(open));
     });
+
+    this.initMorphPill();
+  }
+
+  initMorphPill() {
+    const pillbox = this.querySelector('.site-nav__pillbox');
+    const pill    = this.querySelector('.site-nav__pill');
+    const links   = Array.from(this.querySelectorAll('.site-nav__links a'));
+    if (!pillbox || !pill || !links.length) return;
+
+    const activeLink = this.querySelector('.site-nav__links a[aria-current="page"]') || links[0];
+    let pillTarget = activeLink;
+
+    // Move the pill to a given anchor (link element) — measured against pillbox
+    // Vertical centering happens in CSS via top:50% + translateY(-50%); JS overrides
+    // the transform here so we must compose both axes.
+    const moveTo = (anchor, withTransition = true) => {
+      if (!anchor) return;
+      const boxRect = pillbox.getBoundingClientRect();
+      const aRect   = anchor.getBoundingClientRect();
+      pill.style.transition = withTransition ? '' : 'none';
+      pill.style.transform  = `translate(${(aRect.left - boxRect.left).toFixed(2)}px, -50%)`;
+      pill.style.width      = `${aRect.width.toFixed(2)}px`;
+
+      // mark whichever link the pill is currently behind so its text turns white
+      links.forEach(a => a.classList.toggle('is-pill-active', a === anchor));
+      pillTarget = anchor;
+    };
+
+    // Place at active link (no animation on initial placement)
+    requestAnimationFrame(() => {
+      moveTo(activeLink, false);
+      requestAnimationFrame(() => { pill.style.transition = ''; });
+    });
+
+    // Hover/focus: morph pill to hovered link
+    links.forEach(a => {
+      a.addEventListener('mouseenter', () => moveTo(a));
+      a.addEventListener('focus',      () => moveTo(a));
+    });
+
+    // Leave the pillbox area → return to active link
+    pillbox.addEventListener('mouseleave', () => moveTo(activeLink));
+
+    // Resize keeps pill aligned to the current target
+    window.addEventListener('resize', () => moveTo(pillTarget, false));
   }
 }
 
