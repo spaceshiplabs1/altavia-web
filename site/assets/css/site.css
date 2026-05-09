@@ -39,7 +39,7 @@
 
   /* spacing */
   --gutter: clamp(1.25rem, 2.5vw, 2.5rem);
-  --section-y: clamp(5rem, 10vw, 9rem);
+  --section-y: clamp(3.5rem, 7vw, 6.5rem);
   --max-w: 1280px;
 }
 
@@ -128,9 +128,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .h-section {
   font-family: var(--ff-display);
   font-weight: 700;
-  font-size: clamp(2.1rem, 4.8vw, 3.8rem);
-  line-height: 1.0;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.4rem, 5.4vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.028em;
   margin: 0;
 }
 
@@ -799,56 +799,157 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   line-height: 1.55;
   margin: 0;
 }
+/* interactive orb — sphere follows cursor inside the ring,
+   casts brand-colored light + hard angled shadow projecting downward */
 .guarantee__visual {
   position: relative;
   overflow: hidden;
+  /* sphere offset (set via JS on mousemove, clamped to ring) */
+  --sx: 0px;
+  --sy: 0px;
+  --orb-size: 220px;
+  --ring-size: 380px;
+  --travel: 70px;
+  perspective: 1000px;
 }
 .guarantee__visual::before {
-  /* brand wash — magenta to cyan gradient atmosphere */
+  /* deep brand atmosphere */
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(60% 80% at 80% 50%, rgba(230, 0, 126, 0.45) 0%, transparent 55%),
-    radial-gradient(60% 70% at 95% 95%, rgba(0, 180, 230, 0.30) 0%, transparent 60%),
-    linear-gradient(135deg, transparent 25%, rgba(126, 80, 172, 0.20) 100%);
+    radial-gradient(60% 80% at 75% 50%, rgba(126, 80, 172, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, transparent 25%, rgba(0, 180, 230, 0.10) 100%);
+  pointer-events: none;
 }
 .guarantee__visual::after {
+  /* faint scanlines outside the ring */
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    repeating-linear-gradient(180deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 32px);
-  mask-image: radial-gradient(60% 80% at 80% 50%, #000 0%, transparent 60%);
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 32px);
+  mask-image: radial-gradient(circle at 70% 50%, transparent 0%, transparent 50%, #000 70%);
+  -webkit-mask-image: radial-gradient(circle at 70% 50%, transparent 0%, transparent 50%, #000 70%);
+  pointer-events: none;
 }
-.guarantee__sun {
-  position: absolute;
-  right: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6) 0%, transparent 35%),
-    var(--grad-brand);
-  box-shadow:
-    0 0 80px 20px rgba(230, 0, 126, 0.30),
-    0 0 200px 40px rgba(0, 180, 230, 0.18);
-}
+
+/* outer ring — fixed, defines the boundary */
 .guarantee__rays {
   position: absolute;
-  right: 10%;
+  left: 70%;
   top: 50%;
-  width: 380px;
-  height: 380px;
-  transform: translateY(-50%);
+  width: var(--ring-size);
+  height: var(--ring-size);
+  margin-left: calc(var(--ring-size) / -2);
+  margin-top:  calc(var(--ring-size) / -2);
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
   box-shadow:
-    0 0 0 40px rgba(255,255,255,0.04),
-    0 0 0 90px rgba(255,255,255,0.02);
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 0 0 50px rgba(255,255,255,0.03),
+    0 0 0 110px rgba(255,255,255,0.015);
   pointer-events: none;
+  z-index: 1;
+}
+
+/* cast light — colored glow projected from the sphere onto its surroundings */
+.guarantee__cast {
+  position: absolute;
+  left: 70%;
+  top: 50%;
+  width: 760px;
+  height: 760px;
+  margin-left: -380px;
+  margin-top:  -380px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at calc(50% + var(--sx) * 1.05) calc(50% + var(--sy) * 1.05),
+      rgba(230, 0, 126, 0.55) 0%,
+      rgba(126, 80, 172, 0.32) 12%,
+      rgba(0, 180, 230, 0.18) 24%,
+      transparent 42%);
+  filter: blur(28px);
+  pointer-events: none;
+  transition: background-position 280ms cubic-bezier(.2,.8,.2,1);
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+/* hard angled shadow — projects below the sphere, opposite to light direction */
+.guarantee__shadow {
+  position: absolute;
+  left: 70%;
+  top: 50%;
+  width: var(--orb-size);
+  height: calc(var(--orb-size) * 0.55);
+  margin-left: calc(var(--orb-size) / -2);
+  margin-top:  calc(var(--orb-size) / -2);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center,
+      rgba(0,0,0,0.85) 0%,
+      rgba(0,0,0,0.55) 30%,
+      rgba(0,0,0,0.20) 55%,
+      transparent 75%);
+  /* shadow sits below the sphere, projects further opposite to cursor offset */
+  transform:
+    translate3d(
+      calc(var(--sx) * -0.5),
+      calc(var(--orb-size) * 0.62 + var(--sy) * -0.35),
+      0
+    )
+    rotate(calc(var(--sx) * -0.04deg))
+    scaleY(1.4)
+    scaleX(1.15);
+  filter: blur(6px);
+  opacity: 0.85;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* sphere — the protagonist, follows cursor */
+.guarantee__sun {
+  position: absolute;
+  left: 70%;
+  top: 50%;
+  width: var(--orb-size);
+  height: var(--orb-size);
+  margin-left: calc(var(--orb-size) / -2);
+  margin-top:  calc(var(--orb-size) / -2);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.0) 38%),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.0) 60%, rgba(0,0,0,0.18) 100%),
+    var(--grad-brand);
+  box-shadow:
+    0 0 60px 10px rgba(230, 0, 126, 0.35),
+    0 0 140px 30px rgba(126, 80, 172, 0.25),
+    0 0 220px 60px rgba(0, 180, 230, 0.16);
+  transform: translate3d(var(--sx), var(--sy), 0);
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1),
+              box-shadow 260ms ease;
+  z-index: 3;
+  cursor: grab;
+  pointer-events: auto;
+}
+.guarantee__sun-spec {
+  /* moving specular highlight — opposite to sphere offset, simulates surface light */
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at calc(35% - var(--sx) * 0.18) calc(28% - var(--sy) * 0.18),
+    rgba(255,255,255,0.7) 0%,
+    rgba(255,255,255,0.15) 18%,
+    transparent 40%);
+  pointer-events: none;
+  transition: background-position 260ms cubic-bezier(.2,.8,.2,1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guarantee__sun, .guarantee__shadow, .guarantee__cast { transition: none; }
 }
 .guarantee__cta {
   display: inline-flex;
@@ -872,6 +973,55 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   .guarantee { grid-template-columns: 1fr; min-height: unset; }
   .guarantee__visual { min-height: 280px; order: -1; }
   .guarantee__sun { width: 200px; height: 200px; right: 50%; transform: translate(50%, -50%); }
+}
+
+/* ============================================================
+   photo strip — full-bleed brand-tinted image between sections
+   ============================================================ */
+
+.strip {
+  position: relative;
+  width: 100%;
+  height: clamp(220px, 32vw, 360px);
+  overflow: hidden;
+  background: var(--ink);
+}
+.strip img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+.strip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(244,244,246,0.55) 0%, transparent 18%, transparent 80%, rgba(244,244,246,0.55) 100%),
+    linear-gradient(95deg, rgba(14,18,28,0.45) 0%, rgba(14,18,28,0.05) 60%, transparent 100%);
+  pointer-events: none;
+}
+.strip__caption {
+  position: absolute;
+  left: clamp(1.5rem, 5vw, 4rem);
+  bottom: clamp(1.5rem, 4vw, 2.5rem);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--paper);
+  max-width: 360px;
+}
+.strip__caption .eyebrow { color: rgba(255,255,255,0.78); }
+.strip__caption .eyebrow::before { background: rgba(255,255,255,0.6); }
+.strip__caption strong {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
 
 /* ============================================================
@@ -952,12 +1102,59 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
    esg — 3 pillars, big numerals
    ============================================================ */
 
+.esg__split {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: stretch;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+.esg__photo {
+  position: relative;
+  margin: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--paper-2);
+  min-height: 320px;
+  box-shadow: 0 30px 60px -30px rgba(14,18,28,0.18);
+}
+.esg__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; inset: 0;
+}
+.esg__photo figcaption {
+  position: absolute;
+  left: 18px; bottom: 18px; right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--paper);
+  background: rgba(14,18,28,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+.esg__photo .eyebrow { color: rgba(255,255,255,0.78); }
+.esg__photo .eyebrow::before { background: rgba(255,255,255,0.6); }
+.esg__photo strong {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+@media (max-width: 900px) {
+  .esg__split { grid-template-columns: 1fr; }
+  .esg__photo { min-height: 240px; aspect-ratio: 16 / 9; }
+}
+
 .esg__head {
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: clamp(2rem, 5vw, 5rem);
-  align-items: end;
-  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  grid-template-rows: auto auto;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  align-content: center;
 }
 .esg__pillars {
   display: grid;

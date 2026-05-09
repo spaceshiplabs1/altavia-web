@@ -123,3 +123,66 @@ class AltaviaFooter extends HTMLElement {
 
 customElements.define('altavia-nav', AltaviaNav);
 customElements.define('altavia-footer', AltaviaFooter);
+
+/* ------------------------------------------------------------
+   interactive guarantee orb — sphere follows cursor inside ring,
+   light + hard angled shadow track the position
+   ------------------------------------------------------------ */
+function initOrb() {
+  const orb = document.querySelector('[data-orb]');
+  if (!orb) return;
+
+  const TRAVEL = 70;          // max travel radius from center, px
+  const EASE   = 0.18;        // smoothing factor per frame
+  let targetX = 0, targetY = 0;
+  let currX = 0,   currY = 0;
+  let raf = null;
+
+  const tick = () => {
+    currX += (targetX - currX) * EASE;
+    currY += (targetY - currY) * EASE;
+    orb.style.setProperty('--sx', currX.toFixed(2) + 'px');
+    orb.style.setProperty('--sy', currY.toFixed(2) + 'px');
+    if (Math.abs(targetX - currX) > 0.05 || Math.abs(targetY - currY) > 0.05) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+    }
+  };
+  const schedule = () => { if (raf == null) raf = requestAnimationFrame(tick); };
+
+  const updateFrom = (clientX, clientY) => {
+    const rect = orb.getBoundingClientRect();
+    // anchor matches CSS: sphere sits at left:70%, top:50%
+    const ax = rect.left + rect.width * 0.70;
+    const ay = rect.top  + rect.height * 0.50;
+    let dx = clientX - ax;
+    let dy = clientY - ay;
+    const r = Math.hypot(dx, dy);
+    if (r > TRAVEL) {
+      const k = TRAVEL / r;
+      dx *= k; dy *= k;
+    }
+    targetX = dx;
+    targetY = dy;
+    schedule();
+  };
+
+  // track mouse globally so the orb keeps following even when the cursor
+  // leaves the visual card
+  document.addEventListener('mousemove', e => updateFrom(e.clientX, e.clientY));
+  document.addEventListener('mouseleave', () => { targetX = 0; targetY = 0; schedule(); });
+
+  // touch — single-finger drag updates as user moves over the visual
+  orb.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    if (t) updateFrom(t.clientX, t.clientY);
+  }, { passive: true });
+  orb.addEventListener('touchend', () => { targetX = 0; targetY = 0; schedule(); });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initOrb);
+} else {
+  initOrb();
+}
