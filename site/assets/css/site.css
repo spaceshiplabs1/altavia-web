@@ -552,12 +552,14 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     transform: none;
     width: 100%;
     height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    object-position: 70% 35%;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center;
     opacity: 1;
     -webkit-mask-image: none;
             mask-image: none;
+    display: block;
   }
   .hero__bg::after { display: none; }
   .hero__copy { max-width: 100%; }
