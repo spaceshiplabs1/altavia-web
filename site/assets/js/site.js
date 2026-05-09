@@ -199,6 +199,51 @@ function initSectionReveals() {
 }
 
 /* ------------------------------------------------------------
+   curtain orchestration — start hero reveal immediately, then
+   lift the curtain once the last word has had time to animate.
+   ------------------------------------------------------------ */
+function initCurtain() {
+  const hero = document.querySelector('main > section.hero');
+  if (!hero) return;
+
+  // Tag phases: phase 1 reveals during the curtain (white),
+  // phase 2 reveals after lights-on (color). Boundary = first period.
+  const wordEls = hero.querySelectorAll('.h-display .word');
+  let phase = '1';
+  let phase2Start = wordEls.length;
+  let lastPhase1 = null;
+  wordEls.forEach((w, idx) => {
+    w.dataset.phase = phase;
+    if (phase === '1') lastPhase1 = w;
+    if (phase === '1' && /[.!?]\s*$/.test(w.textContent)) {
+      // this word ends phase 1
+      if (idx + 1 < wordEls.length) {
+        phase = '2';
+        phase2Start = idx + 1;
+      }
+    }
+  });
+  if (lastPhase1) lastPhase1.classList.add('is-phase1-end');
+  hero.style.setProperty('--phase2-start', phase2Start);
+
+  // Phase 1 duration only — curtain lifts after these words finish + a held pause
+  const stagger = 220, transitionMs = 700, holdMs = 2000, padding = 200;
+  const phase1Words = phase2Start;        // count of phase-1 words
+  const total = (phase1Words - 1) * stagger + transitionMs + holdMs + padding;
+
+  // rAF dance — newly-split spans need a paint to compute initial styles
+  // before transitions can fire (otherwise the browser skips the animation).
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      hero.classList.add('in-view');
+      setTimeout(() => {
+        if (typeof window.__lift === 'function') window.__lift();
+      }, total);
+    });
+  });
+}
+
+/* ------------------------------------------------------------
    text splitter — wraps each word in a span with a --i index
    so CSS can stagger word-by-word reveals on section enter.
    ------------------------------------------------------------ */
@@ -274,11 +319,13 @@ function initWordReveals() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initWordReveals();      // split FIRST so observer sees the spans
+    initCurtain();          // start hero reveal + schedule lift
     initOrb();
     initSectionReveals();
   });
 } else {
   initWordReveals();
+  initCurtain();
   initOrb();
   initSectionReveals();
 }

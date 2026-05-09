@@ -105,9 +105,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .h-display {
   font-family: var(--ff-display);
   font-weight: 800;
-  font-size: clamp(2.6rem, 6.8vw, 6.2rem);
-  line-height: 0.94;
-  letter-spacing: -0.03em;
+  font-size: clamp(2.4rem, 5.6vw, 5.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.028em;
   color: var(--ink);
   margin: 0;
 }
@@ -443,7 +443,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   width: 100%;
 }
 .hero__copy {
-  max-width: 640px;
+  max-width: 720px;
 }
 .hero__copy h1 { margin-top: 28px; }
 .hero__copy .lede { margin-top: 28px; max-width: 42ch; }
@@ -1642,6 +1642,95 @@ section.in-view h3 {
 }
 
 /* ============================================================
+   cinematic intro curtain — page loads black, hero H1 reveals
+   word-by-word in white, then lights turn on
+   ============================================================ */
+
+html, body {
+  transition: background-color 1100ms cubic-bezier(.2,.7,.2,1);
+}
+
+html.is-curtain,
+html.is-curtain body {
+  background: #050608;
+  color: var(--paper);
+}
+
+/* hide everything except the hero H1 during the curtain */
+html.is-curtain altavia-nav,
+html.is-curtain altavia-footer,
+html.is-curtain main > section:not(.hero),
+html.is-curtain .hero__bg,
+html.is-curtain .hero::before,
+html.is-curtain .hero__visual-tag,
+html.is-curtain .hero__copy > :not(.h-display) {
+  opacity: 0 !important;
+  visibility: hidden;
+  transition: opacity 700ms cubic-bezier(.2,.7,.2,1), visibility 0s linear 700ms;
+}
+
+/* hero H1 container is fully opaque during curtain so per-word reveals
+   are not masked by a parent fade — only the words animate */
+html.is-curtain .hero .h-display {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  color: var(--paper);
+}
+html.is-curtain .hero .h-display .word {
+  color: var(--paper);
+}
+/* override iridescent gradient on em during curtain — make em pure white too */
+html.is-curtain .hero .h-display em {
+  background: none;
+  -webkit-text-fill-color: var(--paper);
+  color: var(--paper);
+}
+
+/* blinking cursor follows the typed reveal — sits right after the last
+   phase-1 word, only during the curtain */
+html.is-curtain .hero .h-display .word.is-phase1-end::after {
+  content: '';
+  display: inline-block;
+  width: 0.14em;
+  height: 0.85em;
+  margin-left: 0.18em;
+  background: var(--paper);
+  vertical-align: -0.08em;
+  animation: curtain-caret 700ms steps(2) infinite;
+  /* delay the cursor so it appears just after this last word has fully typed in */
+  animation-delay: calc(var(--i, 0) * 220ms + 800ms);
+  opacity: 0;
+}
+@keyframes curtain-caret {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* lights-on: a brief warm flash + then everything settles */
+html.is-lit body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(60% 50% at 50% 35%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
+  z-index: 200;
+  animation: curtain-flash 900ms cubic-bezier(.2,.7,.2,1) forwards;
+}
+@keyframes curtain-flash {
+  0%   { opacity: 0; }
+  18%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* keep restored elements on a smooth fade as curtain lifts */
+altavia-nav, altavia-footer,
+.hero__bg, .hero__visual-tag,
+.hero__copy > * {
+  transition: opacity 900ms cubic-bezier(.2,.7,.2,1) 200ms,
+              visibility 0s linear 0ms;
+}
+
+/* ============================================================
    word-by-word title reveals (split via JS into .word spans)
    ============================================================ */
 
@@ -1653,10 +1742,42 @@ section.in-view h3 {
   opacity: 0;
   transform: translateY(0.5em);
   transition:
-    opacity 700ms cubic-bezier(.2,.7,.2,1),
-    transform 800ms cubic-bezier(.2,.7,.2,1);
-  /* per-word stagger — 60ms between words, set via inline style by JS via --i */
+    opacity 600ms cubic-bezier(.2,.7,.2,1),
+    transform 700ms cubic-bezier(.2,.7,.2,1),
+    color 500ms ease;
+  /* default stagger — quick cascade for normal section titles */
   transition-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* hero title is split into two phases: phase 1 reveals during the curtain
+   in white; phase 2 reveals in color after the lights come on */
+
+/* slow, word-by-word cadence for both phases */
+html.is-curtain .hero .h-display .word,
+html.is-lit     .hero .h-display .word {
+  transition:
+    opacity 650ms cubic-bezier(.2,.7,.2,1),
+    transform 700ms cubic-bezier(.2,.7,.2,1),
+    color 700ms ease;
+  transition-delay: calc(var(--i, 0) * 220ms);
+}
+
+/* phase 2 stays hidden during the curtain (overrides section.in-view .word) */
+html.is-curtain .hero .h-display .word[data-phase="2"] {
+  opacity: 0 !important;
+  transform: translateY(0.5em) !important;
+}
+
+/* phase 2 reveals after lights-on, with its own fresh stagger starting at 0 */
+html.is-lit .hero .h-display .word[data-phase="2"] {
+  transition-delay: calc((var(--i, 0) - var(--phase2-start, 5)) * 220ms);
+}
+
+/* phase 1 words: when curtain lifts, just transition color from white to ink
+   simultaneously (no per-word delay) so they settle in one breath */
+html.is-lit .hero .h-display .word[data-phase="1"] {
+  transition: color 700ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: 0ms;
 }
 section.in-view .word {
   opacity: 1;

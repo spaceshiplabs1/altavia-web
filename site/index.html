@@ -13,6 +13,29 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="/assets/css/site.css" />
+
+<!-- cinematic curtain: page loads black, H1 reveals word-by-word, then lights on.
+     applied via class on <html> so there is no FOUC; safety timer guarantees lift -->
+<script>
+(function () {
+  var html = document.documentElement;
+  html.classList.add('is-curtain');
+  // safety: lift no matter what (covers slow JS / failed resources)
+  var SAFETY_MS = 7000;
+  setTimeout(function () {
+    if (!html.classList.contains('is-curtain')) return;
+    html.classList.remove('is-curtain');
+    html.classList.add('is-lit');
+  }, SAFETY_MS);
+  // a controller can lift earlier (set by site.js once H1 words have revealed)
+  window.__lift = function () {
+    if (!html.classList.contains('is-curtain')) return;
+    html.classList.remove('is-curtain');
+    html.classList.add('is-lit');
+  };
+})();
+</script>
+
 <script type="module" src="/assets/js/site.js"></script>
 </head>
 
@@ -38,7 +61,8 @@
       <h1 class="h-display reveal" data-d="2">
         En ALTAVIA<br/>
         no vendemos paneles.<br/>
-        Estructuramos <em>ahorro<br/>empresarial inteligente</em>.
+        Estructuramos<br/>
+        <em>ahorro inteligente</em>.
       </h1>
 
       <p class="lede reveal" data-d="3">
