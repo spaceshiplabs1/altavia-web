@@ -13,8 +13,7 @@ const NAV_LINKS = [
   { id: 'referidos',  label: 'Referidos',  href: '/referidos.html'    },
 ];
 
-const ASSET_ISOTIPO  = '/assets/img/logo-isotipo.png';
-const ASSET_WORDMARK = '/assets/img/altavia-wordmark.webp';
+const ASSET_ISOTIPO = '/assets/img/logo-isotipo.png';
 
 /* ------------------------------------------------------------
    <altavia-nav current="home">
@@ -30,7 +29,8 @@ class AltaviaNav extends HTMLElement {
     this.innerHTML = `
       <nav class="site-nav" aria-label="Principal">
         <a class="site-nav__brand" href="/index.html" aria-label="ALTAVIA energies — inicio">
-          <span class="site-nav__wordmark" role="img" aria-label="ALTAVIA energies"></span>
+          <img src="${ASSET_ISOTIPO}" alt="" width="32" height="32" />
+          <span class="site-nav__brand-text">ALTAVIA</span>
         </a>
         <div class="site-nav__pillbox">
           <span class="site-nav__pill" aria-hidden="true"></span>
@@ -109,8 +109,8 @@ class AltaviaFooter extends HTMLElement {
           <div class="site-footer__top">
             <div class="site-footer__brand">
               <a class="logo" href="/index.html">
-                <img src="${ASSET_ISOTIPO}" alt="" width="44" height="44" />
-                <span>ALTAVIA<small>energies</small></span>
+                <img src="${ASSET_ISOTIPO}" alt="" width="48" height="48" />
+                <span>ALTAVIA</span>
               </a>
               <h3>El motor que impulsa la transición energética inteligente.</h3>
               <div class="site-footer__contact">
@@ -254,7 +254,10 @@ function initSectionReveals() {
    ------------------------------------------------------------ */
 function initCurtain() {
   const hero = document.querySelector('main > section.hero');
-  if (!hero) return;
+  if (!hero) {
+    if (typeof window.__lift === 'function') window.__lift();
+    return;
+  }
 
   // Tag phases: phase 1 reveals during the curtain (white),
   // phase 2 reveals after lights-on (color). Boundary = first period.

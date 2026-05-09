@@ -217,21 +217,27 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .site-nav__brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--ink);
   flex-shrink: 0;
+  font-family: var(--ff-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.01em;
 }
-/* wordmark rendered as a mask so it inherits the ink color and stays sharp at any size */
-.site-nav__wordmark {
-  display: block;
-  width: clamp(118px, 12vw, 148px);
-  aspect-ratio: 1536 / 477;
-  background: currentColor;
-  -webkit-mask: url('/assets/img/altavia-wordmark.webp') center / contain no-repeat;
-          mask: url('/assets/img/altavia-wordmark.webp') center / contain no-repeat;
-  transition: opacity 220ms ease;
+.site-nav__brand img {
+  width: 30px;
+  height: 30px;
+  transition: transform 240ms ease;
 }
-.site-nav__brand:hover .site-nav__wordmark { opacity: 0.78; }
+.site-nav__brand:hover img { transform: rotate(-6deg); }
+.site-nav__brand-text {
+  font-family: var(--ff-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
 
 /* pillbox: sliding indicator that morphs across links */
 .site-nav__pillbox {
@@ -1514,22 +1520,12 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 .site-footer__brand .logo {
   display: inline-flex; align-items: center; gap: 14px;
-  font-family: var(--ff-display); font-weight: 800; font-size: 1.45rem;
-  letter-spacing: -0.01em;
+  font-family: var(--ff-display); font-weight: 800; font-size: 1.65rem;
+  letter-spacing: -0.015em;
   letter-spacing: -0.005em;
   color: var(--paper);
 }
 .site-footer__brand .logo img { width: 44px; height: 44px; }
-.site-footer__brand .logo span { display: inline-flex; flex-direction: column; line-height: 0.95; }
-.site-footer__brand .logo span small {
-  font-family: var(--ff-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(246,243,236,0.55);
-  margin-top: 4px;
-}
 .site-footer__contact { font-size: 0.92rem; line-height: 1.6; color: rgba(246,243,236,0.7); }
 .site-footer__contact .row { display: flex; gap: 10px; align-items: flex-start; padding-block: 4px; }
 .site-footer__contact a:hover { color: var(--sun-soft); }
@@ -1867,3 +1863,240 @@ section.in-view p.lede {
   /* kick off after a few words have revealed */
   transition-delay: 350ms;
 }
+
+/* ============================================================
+   subpage chrome — compact hero used on /soluciones, /nosotros,
+   /referidos, etc. shorter than the home hero, no curtain.
+   ============================================================ */
+.page-hero {
+  padding: clamp(7rem, 14vw, 11rem) 0 clamp(3rem, 6vw, 5.5rem);
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 70% at 12% 0%, rgba(230,0,126,0.06), transparent 60%),
+    radial-gradient(55% 60% at 92% 28%, rgba(0,180,230,0.05), transparent 60%);
+  pointer-events: none;
+}
+.page-hero__inner { position: relative; max-width: 980px; }
+.page-hero h1 {
+  font-family: var(--ff-display);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  margin: 18px 0 0;
+}
+.page-hero .lede { margin-top: 26px; max-width: 60ch; font-size: clamp(1.05rem, 1.4vw, 1.2rem); }
+.page-hero__cta { margin-top: 36px; display: inline-flex; gap: 12px; flex-wrap: wrap; }
+.page-hero__crumbs {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-hero__crumbs a { color: var(--ink-soft); transition: color 200ms ease; }
+.page-hero__crumbs a:hover { color: var(--brand-m); }
+.page-hero__crumbs span[aria-hidden] { opacity: 0.4; }
+
+/* ============================================================
+   tier cards — used on /soluciones for O&M policy levels and
+   benefit grids
+   ============================================================ */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 56px;
+}
+@media (max-width: 920px) { .tier-grid { grid-template-columns: 1fr; } }
+.tier {
+  position: relative;
+  padding: 36px 32px 32px;
+  border-radius: 22px;
+  border: 1px solid var(--rule-2);
+  background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.4));
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  display: flex; flex-direction: column;
+  gap: 18px;
+  transition: transform 360ms cubic-bezier(.2,.7,.2,1), box-shadow 360ms ease, border-color 240ms ease;
+}
+.tier:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 48px -28px rgba(14,18,28,0.32);
+  border-color: rgba(14,18,28,0.22);
+}
+.tier__num { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+.tier h3 {
+  font-family: var(--ff-display); font-weight: 800; font-size: 1.55rem;
+  letter-spacing: -0.015em; margin: 0;
+}
+.tier ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.tier li {
+  display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start;
+  font-size: 0.96rem; line-height: 1.5;
+}
+.tier li::before {
+  content: ''; width: 14px; height: 14px; margin-top: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand-m), var(--brand-c));
+}
+.tier--featured {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: translateY(-12px);
+  box-shadow: 0 32px 60px -34px rgba(14,18,28,0.6);
+}
+.tier--featured h3 { color: var(--paper); }
+.tier--featured .tier__num { color: rgba(244,244,246,0.6); }
+.tier--featured li { color: rgba(244,244,246,0.85); }
+.tier--featured li::before { background: linear-gradient(135deg, #ff6bb6, #66d6ff); }
+.tier__badge {
+  position: absolute; top: -12px; right: 24px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  background: var(--grad-brand); color: var(--paper);
+  padding: 6px 12px; border-radius: 999px;
+}
+
+/* ============================================================
+   benefit-grid — 4-up cards used on /soluciones (Usufructo)
+   ============================================================ */
+.benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-top: 48px;
+}
+@media (max-width: 1080px) { .benefit-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .benefit-grid { grid-template-columns: 1fr; } }
+.benefit {
+  padding: 28px 26px;
+  border-radius: 20px;
+  border: 1px solid var(--rule);
+  background: rgba(255,255,255,0.6);
+  display: flex; flex-direction: column; gap: 12px;
+  transition: transform 280ms ease, border-color 240ms ease, background 240ms ease;
+}
+.benefit:hover { transform: translateY(-2px); border-color: var(--rule-2); background: rgba(255,255,255,0.85); }
+.benefit__num { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; color: var(--brand-m); }
+.benefit h4 { font-family: var(--ff-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.01em; margin: 0; }
+.benefit p { font-size: 0.96rem; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+
+/* ============================================================
+   split-pane — used on /nosotros (mission/vision/values) and
+   /referidos (clientes vs promotor)
+   ============================================================ */
+.pane-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  margin-top: 56px;
+}
+@media (max-width: 860px) { .pane-grid { grid-template-columns: 1fr; } }
+.pane {
+  padding: 40px 36px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  border: 1px solid var(--rule);
+  position: relative; overflow: hidden;
+}
+.pane--dark { background: var(--grad-night); color: var(--paper); border-color: rgba(255,255,255,0.08); }
+.pane--dark h3 { color: var(--paper); }
+.pane__role {
+  font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--brand-m); display: inline-flex; align-items: center; gap: 8px;
+}
+.pane--dark .pane__role { color: #ff6bb6; }
+.pane h3 { font-family: var(--ff-display); font-weight: 800; font-size: 1.85rem; letter-spacing: -0.02em; margin: 16px 0 14px; }
+.pane p { font-size: 1rem; line-height: 1.6; }
+.pane ul { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.pane li { padding-left: 22px; position: relative; font-size: 0.96rem; line-height: 1.5; }
+.pane li::before {
+  content: ''; position: absolute; left: 0; top: 0.55em;
+  width: 10px; height: 10px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand-m), var(--brand-c));
+}
+.pane--dark li::before { background: linear-gradient(135deg, #ff6bb6, #66d6ff); }
+
+/* ============================================================
+   differentiator grid — 3 cols of small icon-led items
+   used on /nosotros
+   ============================================================ */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px 36px;
+  margin-top: 48px;
+}
+@media (max-width: 860px) { .diff-grid { grid-template-columns: 1fr; } }
+.diff {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 28px; border-top: 1px solid var(--rule-2);
+}
+.diff__no { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.16em; color: var(--brand-m); }
+.diff h4 { font-family: var(--ff-display); font-weight: 700; font-size: 1.18rem; letter-spacing: -0.01em; margin: 4px 0 0; }
+.diff p { font-size: 0.95rem; color: var(--ink-soft); line-height: 1.5; margin: 4px 0 0; }
+
+/* ============================================================
+   reporte-steps — 4-step horizontal flow used on /nosotros
+   ============================================================ */
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 56px;
+  position: relative;
+}
+@media (max-width: 980px) { .flow-steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .flow-steps { grid-template-columns: 1fr; } }
+.flow-step {
+  padding: 28px 22px;
+  border-radius: 18px;
+  background: rgba(14,18,28,0.04);
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+  border: 1px solid var(--rule);
+}
+.flow-step__no { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--brand-m); }
+.flow-step h4 { font-family: var(--ff-display); font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; margin: 0; }
+.flow-step p { font-size: 0.92rem; line-height: 1.5; color: var(--ink-soft); margin: 0; }
+
+/* ============================================================
+   legal pages — long-form prose
+   ============================================================ */
+.legal {
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+.legal__doc {
+  max-width: 760px;
+  margin: 0 auto;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.legal__doc h2 {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  margin: 44px 0 12px;
+  color: var(--ink);
+}
+.legal__doc h2:first-child { margin-top: 0; }
+.legal__doc p { margin: 0 0 14px; }
+.legal__meta {
+  font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 32px; display: inline-flex; gap: 14px; flex-wrap: wrap;
+}
+.legal__meta span::before { content: '·'; margin-right: 14px; opacity: 0.4; }
+.legal__meta span:first-child::before { content: ''; margin: 0; }
