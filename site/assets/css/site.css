@@ -220,23 +220,20 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   gap: 12px;
   color: var(--ink);
   flex-shrink: 0;
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.12rem;
-  letter-spacing: -0.01em;
 }
 .site-nav__brand img {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   transition: transform 240ms ease;
 }
 .site-nav__brand:hover img { transform: rotate(-6deg); }
 .site-nav__brand-text {
   font-family: var(--ff-display);
   font-weight: 800;
-  font-size: 1.12rem;
-  letter-spacing: -0.005em;
+  font-size: 1.32rem;
+  letter-spacing: -0.012em;
   white-space: nowrap;
+  line-height: 1;
 }
 
 /* pillbox: sliding indicator that morphs across links */
@@ -528,17 +525,66 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 @media (max-width: 860px) {
-  .hero { min-height: unset; padding-bottom: clamp(3rem, 8vw, 5rem); }
-  .hero__bg img {
-    width: 100%;
-    right: 0;
-    object-position: 70% 30%;
-    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, #000 30%, #000 70%, rgba(0,0,0,0.15) 100%);
-            mask-image: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, #000 30%, #000 70%, rgba(0,0,0,0.15) 100%);
-    opacity: 0.35;
+  /* on phones the image moves out of the background and sits as a real
+     block underneath the title — full width, right edge flush, no fade */
+  .hero {
+    min-height: unset;
+    padding-top: clamp(6rem, 18vw, 8rem);
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    isolation: isolate;
   }
+  .hero__inner { order: 1; }
+  .hero__bg {
+    order: 2;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    margin-top: clamp(1.5rem, 6vw, 2.4rem);
+  }
+  .hero__bg img {
+    position: relative;
+    inset: auto;
+    right: 0;
+    top: 0;
+    transform: none;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: 70% 35%;
+    opacity: 1;
+    -webkit-mask-image: none;
+            mask-image: none;
+  }
+  .hero__bg::after { display: none; }
   .hero__copy { max-width: 100%; }
   .hero__visual-tag { display: none; }
+}
+
+/* edge-to-edge guarantee on every size: the hero image's right edge
+   should always sit flush against the viewport's right edge — no white gap */
+.hero__bg, .hero__bg img { right: 0 !important; }
+
+/* phone CTA capsules: bigger touch targets, stack full-width, generous breathing */
+@media (max-width: 720px) {
+  .hero__cta { gap: 12px; margin-top: 32px; flex-direction: column; align-items: stretch; }
+  .hero__cta .btn {
+    justify-content: space-between;
+    padding: 18px 24px;
+    font-size: 15px;
+    width: 100%;
+  }
+  /* page-hero (subpages) gets the same treatment */
+  .page-hero__cta { gap: 12px; flex-direction: column; align-items: stretch; }
+  .page-hero__cta .btn {
+    justify-content: space-between;
+    padding: 18px 24px;
+    font-size: 15px;
+    width: 100%;
+  }
 }
 
 /* ============================================================
@@ -607,9 +653,21 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 @media (max-width: 720px) {
-  .ribbon__grid { grid-template-columns: 1fr; }
-  .ribbon__item { border-right: 0; border-bottom: 1px solid var(--rule); padding: 18px 0; }
+  .ribbon { padding-block: clamp(2.4rem, 8vw, 3.4rem); }
+  .ribbon__grid { grid-template-columns: 1fr; gap: 8px; }
+  .ribbon__item {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    padding: 32px 0;
+  }
   .ribbon__item:last-child { border-bottom: 0; }
+  .ribbon__num { font-size: clamp(4.6rem, 19vw, 7.2rem); letter-spacing: -0.045em; }
+  .ribbon__num--text { font-size: clamp(3rem, 14vw, 4.6rem); }
+  .ribbon__lead {
+    margin-top: 18px;
+    font-size: clamp(1.15rem, 4.4vw, 1.45rem);
+  }
+  .ribbon__label { margin-top: 8px; font-size: 12px; }
 }
 
 /* ============================================================
